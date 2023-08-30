@@ -1,11 +1,18 @@
 import click
-from ..words_parser.address_normaliser import Address_normaliser
-from ..create_db.database import Database
 import pathlib
-path_to_databases = pathlib.Path().joinpath('project').joinpath('create_db').joinpath('databases')
+import sys
+
+sys.path.append(str(pathlib.Path(__file__).parent.parent.parent.absolute()))
+
+path_to_databases = pathlib.Path(__file__).parent.parent\
+    .joinpath('create_db')\
+    .joinpath('databases')
+
+from Geocoder.words_parser.address_normaliser import Address_normaliser
+from Geocoder.create_db.database import Database
 
 
-def find_coordinates(city, street, housenumber, region = ''):
+def find_coordinates(city, street, housenumber, region=''):
     query_for_id = """SELECT id FROM addresses WHERE region=? AND
                       city REGEXP ? AND street REGEXP ? AND house_number REGEXP ?"""
     query_for_coordinates = """SELECT lat, lon FROM coordinates WHERE id=?"""
@@ -24,7 +31,7 @@ def find_coordinates(city, street, housenumber, region = ''):
             continue
         print(region)
         return db.select_from_database(query_for_coordinates, (id[0],))
-    
+
     raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
 
 
@@ -33,6 +40,7 @@ def find_coordinates(city, street, housenumber, region = ''):
 def input_data(address):
     if not address:
         raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
+
     if address.count(',') > 0:
         region, addr = address.split(',')
         if len(Address_normaliser.split_address(addr)) == 3:
