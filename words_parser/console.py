@@ -18,19 +18,19 @@ def find_coordinates(city, street, housenumber, region=''):
     query_for_coordinates = """SELECT lat, lon FROM coordinates WHERE id=?"""
     if region:
         db = Database(path_to_databases.joinpath(f'{region}.db'))
-        id = db.select_from_database(query_for_id, (region, city, street, housenumber))
+        id = db.select_from_database(query_for_id, (region, city, street, housenumber))[0]
         if not id:
             raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
-        return db.select_from_database(query_for_coordinates, (id[0],))
+        return db.select_from_database(query_for_coordinates, (id[0],))[0]
 
     for db in path_to_databases.iterdir():
         region = db.name.split('.')[0]
         db = Database(path_to_databases.joinpath(f'{region}.db'))
-        id = db.select_from_database(query_for_id, (region, city, street, housenumber))
+        id = db.select_from_database(query_for_id, (region, city, street, housenumber))[0]
         if not id:
             continue
         print(region)
-        return db.select_from_database(query_for_coordinates, (id[0],))
+        return db.select_from_database(query_for_coordinates, (id[0],))[0]
 
     raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
 
@@ -42,12 +42,14 @@ def input_data(address):
         raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
 
     if address.count(',') > 0:
-        region, addr = address.split(',')
+        region = address.split(',')[0]
+        addr = address.split(',')[1:]
         if len(Address_normaliser.split_address(addr)) == 3:
             city, street, house_num = Address_normaliser.split_address(addr)
     else:
         region = ""
         city, street, house_num = Address_normaliser.split_address(address)
+
     if city and street and house_num:
         coordinates = find_coordinates(city, street, house_num, region=region)
         result = f"Страна: Россия\nРегион: {region}\nНаселенный пункт: {city}\nУлица: {street}\nНомер дома: {house_num}\nДолгота: {coordinates[0]}\nШирота: {coordinates[1]}"

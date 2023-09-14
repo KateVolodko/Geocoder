@@ -1,5 +1,5 @@
 import os
-import OsmElementsFinder as osm
+import osmfinder as osm
 
 
 alphabet = set('абвгдеёжзийклмнопрстуфхцчшщъыьэюя-0123456789')
@@ -10,7 +10,10 @@ class Cities:
 
     def find_cities(self, filePBF):
         file_cities_path = f"{filePBF.name}_cities.osm.pbf"
-        os.system(f'cmd /c "osmosis --read-pbf {filePBF.path} --tf accept-nodes place=city,town,village --tf reject-relations --tf reject-ways --lp --wb {file_cities_path}"')
+        os.system(f'cmd /c "osmosis --read-pbf {filePBF.path}'
+                  f' --tf accept-nodes place=city,town,village'
+                  f' --tf reject-relations --tf reject-ways'
+                  f' --lp --wb {file_cities_path}"')
         handler = osm.AddressHandler(self._filter_by_name, self._return_name)
         handler.apply_file(file_cities_path)
         self.cities = handler.elements

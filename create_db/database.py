@@ -31,4 +31,4 @@ class Database:
 
     def select_from_database(self, query, data):
         self.cursor.execute(query, data)
-        return self.cursor.fetchone()
+        return self.cursor.fetchall()
