@@ -8,7 +8,7 @@ path_to_databases = pathlib.Path(__file__).parent.parent\
     .joinpath('create_db')\
     .joinpath('databases')
 
-from Geocoder.words_parser.address_normaliser import Address_normaliser
+from Geocoder.words_parser.address_parser import Address_parser
 from Geocoder.create_db.database import Database
 
 
@@ -41,14 +41,7 @@ def input_data(address):
     if not address:
         raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
 
-    if address.count(',') > 0:
-        region = address.split(',')[0]
-        addr = address.split(',')[1:]
-        if len(Address_normaliser.split_address(addr)) == 3:
-            city, street, house_num = Address_normaliser.split_address(addr)
-    else:
-        region = ""
-        city, street, house_num = Address_normaliser.split_address(address)
+    region, city, street, house_num = Address_parser.split_address(address)
 
     if city and street and house_num:
         coordinates = find_coordinates(city, street, house_num, region=region)
