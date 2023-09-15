@@ -10,16 +10,25 @@ class Address_normaliser:
 
     def split_address(self):
         city, street = '', ''
-        morph = pymorphy2.MorphAnalyzer()
-        extractor = AddrExtractor(morph)
-        matches = extractor(self)
-        address = [match.fact for match in matches]
-        for i in address:
-            if i.type in Address_normaliser.keywords[:6]:
-                city = i.value
-            elif i.type in Address_normaliser.keywords[6:]:
-                street = i.value
+        pattern = r"(?:город|село|посёлок|деревня|слобода|г|д|с)?\s*" \
+                r"([А-Яа-яё\s]+)?(?:ул\.|ал\.|улица|аллея|километр|" \
+                r"переулок|проспект|шоссе|бульвар|проезд|площадь|" \
+                r"съезд|тракт|тупик|набережная)\s*(\d+-*\s*\w+|\w+\s+\w+)?"
+        match = re.search(pattern, self)
+        if match:
+            city = match.group(1)
+            street = match.group(2).strip()
+            if city:
+                city = city.strip()
+            else:
+                pattern = r"(?:город|село|посёлок|деревня|г\.)\s*((?:\w+\s*)+)"
+                match = re.search(pattern, self)
+                if match:
+                    city = match.group(1)
         num_pattern = r'\b(\d{1,4}[-/]?\d*[а-яА-Я]?)\b'
         house_num = re.findall(num_pattern, self)[-1]
+        print(city)
+        print(street)
+        print(house_num)
         return city, street, house_num
 # print(Address_normaliser.split_address("Республика Алтай, деревня Хабаровка улица Центральная 47"))
