@@ -14,7 +14,7 @@ from Geocoder.create_db.database import Database
 
 def find_coordinates(city, street, housenumber, region=''):
     query_for_id = """SELECT id FROM addresses WHERE region=? AND
-                      city REGEXP ? AND street REGEXP ? AND house_number REGEXP ?"""
+                      city REGEXP ? AND street REGEXP ? AND house_number=?"""
     query_for_coordinates = """SELECT lat, lon FROM coordinates WHERE id=?"""
     if region:
         db = Database(path_to_databases.joinpath(f'{region}.db'))
