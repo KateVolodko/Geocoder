@@ -17,7 +17,6 @@ class CoordinatesFinder:
         self.region = region
 
     def find_coordinates(self):
-        print(self.region)
         if self.region:
             coordinates = self._select_coordinates_from_db(self.region)
             if coordinates:
@@ -49,16 +48,19 @@ class CoordinatesFinder:
         if data_from_db_cities:
             db_coordinates = Database(path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
             for city, start_row, end_row in data_from_db_cities:
-                print(city, start_row, end_row, region, self.street, self.house)
-                query_for_id = f'''SELECT id
-                            FROM (SELECT id,ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS RowNum
-                            FROM addresses 
-                            WHERE city =? AND street REGEXP ? AND house_number = ?) SubQuery
-                            WHERE SubQuery.RowNum BETWEEN {start_row} AND {end_row}'''
-
-                id = db_coordinates.select_from_database(query_for_id, (city, f".*{self.street}.*", self.house))
-                print(id)
-                if id:
+                query_for_id = f'''WITH Data AS (
+                            SELECT city, street, house_number, id, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS RowNum
+                            FROM addresses)
+                            SELECT city, street, house_number, id, RowNum
+                            FROM Data
+                            WHERE city = ? AND street REGEXP ? AND house_number = ? AND
+                            RowNum BETWEEN {start_row} AND {end_row}'''
+                
+                data_from_db = db_coordinates.select_from_database(query_for_id, (city, f".*{self.street}.*", self.house))
+                if data_from_db:
                     self.region = region
-                    return db_coordinates.select_from_database(query_for_coordinates, (id[0][0],))[0]
+                    self.city = data_from_db[0][0]
+                    self.street = data_from_db[0][1]
+                    self.house = data_from_db[0][2]
+                    return db_coordinates.select_from_database(query_for_coordinates, (data_from_db[0][3],))[0]
                 
