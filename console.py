@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent.parent.absolute()))
 
-from finder import CoordinatesFinder
+from Geocoder.words_parser.finder import CoordinatesFinder
 from Geocoder.words_parser.address_parser import Address_parser
 
 
