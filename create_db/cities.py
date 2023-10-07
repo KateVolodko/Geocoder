@@ -1,5 +1,7 @@
 import os
-import osmfinder as osm
+from . import osmfinder as osm
+import pathlib
+from .database import Database
 
 
 alphabet = set('абвгдеёжзийклмнопрстуфхцчшщъыьэюя-0123456789')
@@ -7,8 +9,14 @@ class Cities:
     def __init__(self, region):
         self.cities = []
         self.region = region
+        self.cities_with_rows = {}
 
-    def find_cities(self, filePBF):
+    def find_cities_in_db(self):
+        db_cities = Database(pathlib.Path(__file__).parent.joinpath('cities_by_region').joinpath(f'{self.region}_cities.db'))
+        self.cities_with_rows = {city: [strt,end] for city, strt, end in db_cities.select_from_database('''SELECT * FROM cities''', ())}
+        self.cities = [city for city in self.cities_with_rows.keys()]
+
+    def find_cities_in_pbf(self, filePBF):
         file_cities_path = f"{filePBF.name}_cities.osm.pbf"
         os.system(f'cmd /c "osmosis --read-pbf {filePBF.path}'
                   f' --tf accept-nodes place=city,town,village'

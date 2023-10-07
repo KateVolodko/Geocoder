@@ -47,7 +47,7 @@ def main():
             continue
 
         cities = Cities(file.region)
-        cities.find_cities(file)
+        cities.find_cities_in_pbf(file)
         print(len(cities.cities), file.region)
         db = Database(pathlib.Path('databases').joinpath(f'{file.region}.db'))
         db.create_database()
