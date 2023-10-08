@@ -16,7 +16,15 @@ def input_data(address):
         finder = CoordinatesFinder(city, street, house_num, 
                                    region=region if len(region) > 3 else '')
         coordinates = finder.find_coordinates()
-        finder.print_result(coordinates[0], coordinates[1])
+        if coordinates is None:
+            coordinates = finder.try_return_similar_cities()
+        for coordinate in coordinates:
+            finder.print_result(coordinate[0], coordinate[1])
+        else:
+            try:
+                if coordinate: pass
+            except UnboundLocalError:            
+                raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
     else:
         raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
 

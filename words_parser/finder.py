@@ -23,17 +23,15 @@ class CoordinatesFinder:
         if self.region:
             coordinates = self._select_coordinates_from_db(self.region)
             if coordinates:
-                return coordinates
+                return [coordinates]
         
         for db in path_to_databases.joinpath('databases').iterdir():
             region = db.name.split('.')[0]
             coordinates = self._select_coordinates_from_db(region)
             if coordinates:
-                return coordinates
+                return [coordinates]
         
-        if self._proced():
-            return self._proced()
-        raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
+        print("Адрес не удалось распознать точно, вот похожие адреса:")
 
     def print_result(self, lat, lon):
         print(f"Страна: Россия\n"
@@ -73,15 +71,18 @@ class CoordinatesFinder:
                     self._similar_cities[(count, cities.region)] = []
                 self._similar_cities[(count,cities.region)].append(city)
 
-    def _proced(self):
-        for city, region in [(city,region[1]) for region, cities in sorted(self._similar_cities.items()) for city in cities]:
+    def try_return_similar_cities(self):
+        count = 0
+        for city, region in [(city,region[1]) for region, cities in sorted(self._similar_cities.items()) for city in cities if region[0] <= 10]:
             db_coordinates = Database(path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
             query_for_id = f'''SELECT city, street, house_number, id
                             FROM addresses
                             WHERE city = ? AND street REGEXP ? AND house_number = ?'''
             coordinates = self._try_return_data_from_db(db_coordinates, query_for_id, (city, f".*{self._to_different_case(self.street)}.*", self.house), region)
             if coordinates:
-                return coordinates
+                count += 1
+                yield coordinates
+                print()
             else:
                 query_for_id_without_house = \
                     f'''SELECT city, street, house_number, id
@@ -89,7 +90,13 @@ class CoordinatesFinder:
                         WHERE city = ? AND street REGEXP ? AND house_number REGEXP ?'''
                 coordinates = self._try_return_data_from_db(db_coordinates, query_for_id_without_house, (city, f".*{self._to_different_case(self.street)}.*", f".*{self.house[0]}.*"), region)
                 if coordinates:
-                    return coordinates
+                    count += 1
+                    yield coordinates
+                    print()
+            
+            if count == 5:
+                break
+        
 
     def _try_return_data_from_db(self, db, query, parameters, region):
         data_from_db = db.select_from_database(query, parameters)
