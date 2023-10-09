@@ -97,7 +97,6 @@ class CoordinatesFinder:
             if count == 5:
                 break
         
-
     def _try_return_data_from_db(self, db, query, parameters, region):
         data_from_db = db.select_from_database(query, parameters)
         if data_from_db:
@@ -108,4 +107,4 @@ class CoordinatesFinder:
             return db.select_from_database('''SELECT lat, lon FROM coordinates WHERE id=?''', (data_from_db[0][3],))[0]
 
     def _to_different_case(self, st):
-        return " ".join(f"[{el[0].upper()}{el[0].lower()}]"+el[1:] for el in st.split())
+        return " ".join(f"[{el[0].upper()}{el[0].lower()}]{el[1:3]}" for el in st.split())

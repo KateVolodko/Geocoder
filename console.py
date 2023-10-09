@@ -8,7 +8,7 @@ from words_parser.address_parser import Address_parser
 @click.option('--address', type=str, help='Введите адрес')
 def input_data(address):
     if not address:
-        raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
+        show_input_example()
 
     region, city, street, house_num = Address_parser.split_address(address)
 
@@ -24,10 +24,13 @@ def input_data(address):
             try:
                 if coordinate: pass
             except UnboundLocalError:            
-                raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
+                print("Похожих адресов найти не удалось.")
     else:
-        raise ValueError("Адрес не удается распознать, попробуйте ввести по-другому")
+        show_input_example()
 
+def show_input_example():
+    print("Адрес не удается распознать, попробуйте ввести по-другому.")
+    print("Пример адрес: г Екатеринбург улица Тургенева 4")
 
 if __name__ == "__main__":
     input_data()

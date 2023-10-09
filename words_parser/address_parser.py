@@ -21,8 +21,8 @@ class Address_parser:
     def split_address(self):
         city, street = '', ''
         region, address = Address_parser.define_region(self)
-        pattern = r"(?:город|село|посёлок|деревня|слобода|г\.|д\.|с\.)*\s*" \
-                  r"([А-Яа-яё\s]+)?(?:ул\.|ал\.|улица|аллея|километр|" \
+        pattern = r"(?:город|село|посёлок|деревня|слобода|г\.|д\.|с\.|г|д|с)*\s*" \
+                  r"([А-Яа-яё\s]+)?(?:ул\.|ал\.|ул|у|ал|улица|аллея|километр|" \
                   r"переулок|проспект|шоссе|бульвар|проезд|площадь|" \
                   r"съезд|тракт|тупик|набережная)\s*(\d+-*\s*\w+|\w+\s*[А-Яа-яё]*)?"
         match = re.search(pattern, address)
@@ -36,8 +36,12 @@ class Address_parser:
                 match = re.search(pattern, address)
                 if match:
                     city = match.group(1).strip()
+                    
         num_pattern = r'\b(\d{1,4}[-/]?\d*[а-яА-Я]?)\b'
-        house_num = re.findall(num_pattern, address)[-1]
+        try:
+            house_num = re.findall(num_pattern, address)[-1]
+        except IndexError:
+            house_num = None
         return region, city, street, house_num
 
     def define_region(self):
