@@ -1,3 +1,5 @@
+import json
+import os
 import pathlib
 import sys
 
@@ -9,7 +11,8 @@ from .algorithms import LevenshteinDistance
 
 path_to_databases = pathlib.Path(__file__).parent.parent\
     .joinpath('create_db')
-
+path_to_results = pathlib.Path(__file__).parent.parent \
+    .joinpath('result.json')
 
 class CoordinatesFinder:
     def __init__(self, city, street, house_number, region=''):
@@ -34,13 +37,27 @@ class CoordinatesFinder:
         print("Адрес не удалось распознать точно, вот похожие адреса:")
 
     def print_result(self, lat, lon):
-        print(f"Страна: Россия\n"
-              f"Регион: {self.region}\n"
-              f"Населенный пункт: {self.city}\n"
-              f"Улица: {self.street}\n"
-              f"Номер дома: {self.house}\n"
-              f"Долгота: {lat}\n"
-              f"Широта: {lon}")
+        data = {
+            "Страна": "Россия",
+            "Регион": self.region,
+            "Населенный пункт": self.city,
+            "Улица": self.street,
+            "Номер дома": self.house,
+            "Долгота": lat,
+            "Широта": lon
+        }
+        if os.path.isfile(path_to_results):
+            with open(path_to_results, 'r', encoding='utf-8') as file:
+                records = json.load(file)
+        else:
+            records = []
+        records.insert(0,data)
+        if len(records)>=100:
+            records = records [:100]
+        data_str = json.dumps(records, ensure_ascii=False, indent=4)
+        with open(path_to_results,'w', encoding='utf-8') as file:
+            file.write(data_str)
+        os.system('notepad.exe {}'.format(path_to_results))
 
     def _select_coordinates_from_db(self, region):
         cities = Cities(region)
