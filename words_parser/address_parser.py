@@ -61,7 +61,7 @@ class Address_parser:
             else:
                 address = self.replace(region, '').strip()
         else:
-            region = " "
+            region = ""
             address = self
         region = region_dict.get(region, region)
         return region, address
