@@ -1,5 +1,3 @@
-import json
-import os
 import pathlib
 import sys
 
@@ -65,7 +63,7 @@ class CoordinatesFinder:
 
     def try_return_similar_cities(self):
         count = 0
-        for city, region in [(city,region[1]) for region, cities in sorted(self._similar_cities.items()) for city in cities if region[0] <= 10]:
+        for city, region in [(city,region[1]) for region, cities in sorted(self._similar_cities.items()) for city in cities if region[0] <= 5]:
             db_coordinates = Database(path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
             query_for_id = f'''SELECT city, street, house_number, id
                             FROM addresses
@@ -74,7 +72,6 @@ class CoordinatesFinder:
             if coordinates:
                 count += 1
                 yield coordinates
-                print()
             else:
                 query_for_id_without_house = \
                     f'''SELECT city, street, house_number, id
@@ -84,7 +81,6 @@ class CoordinatesFinder:
                 if coordinates:
                     count += 1
                     yield coordinates
-                    print()
             
             if count == 5:
                 break
