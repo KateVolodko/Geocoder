@@ -13,12 +13,14 @@ class Tests(unittest.TestCase):
         CSVParser.parse_file(response, "region", "city")
         self.assertEqual([], CSVParser.addresses)
         self.assertEqual([], CSVParser.coordinates)
-
+        self._clear_static_arrays()
+        
     def test_csv_parser_one_row(self):
         response = "12|Серова|11|12|12345|way"
         CSVParser.parse_file(response, "обл.Свердл.", "Екат.")
         self.assertEqual([('обл.Свердл.','Екат.','Серова',"12","12345w")], CSVParser.addresses)
         self.assertEqual([("12345w",'11', '12')], CSVParser.coordinates)
+        self._clear_static_arrays()
 
     def test_csv_parser_many_rows(self):
         response = "12|Серова|11|12|12345|way \n74|Шмидта|13|14|12346|node \n89|8 Марта|15|16|12347|relation"
@@ -31,6 +33,8 @@ class Tests(unittest.TestCase):
                           ("12346n",'13', '14'),
                           ("12347r",'15', '16')], 
                           CSVParser.coordinates)
+        self._clear_static_arrays()
 
-
-
+    def _clear_static_arrays(self):
+        CSVParser.addresses.clear()
+        CSVParser.coordinates.clear()
