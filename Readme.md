@@ -44,4 +44,4 @@
 
 Работа с консолью осуществляется через функцию `console.input_data()`, которая обрабатывает введенный адресс и выводит результат геокодирования в отдельный файл формата JSON.
 
-На модули `words_parser.address_parser`, `words_parser.algorithms`, `words_parser.finder` написаны тесты, их можно найти в `Tests.py`. Также в `tests_for_create_db.Test.py` находятся тесты на модуль `create_db.csvparser`.
+На модули `words_parser.address_parser`, `words_parser.algorithms`, `words_parser.finder` написаны тесты, их можно найти в `tests.test_words_parser.py`. Также в `tests.test_create_db.py` находятся тесты на модуль `create_db.csvparser`.
