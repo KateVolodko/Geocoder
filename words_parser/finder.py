@@ -36,24 +36,30 @@ class CoordinatesFinder:
         cities = Cities(region)
         cities.find_cities_in_db()
         if self.city in cities.cities:
-            db_coordinates = Database(path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
+            db_coordinates = Database(
+                path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
             start_row, end_row = cities.cities_with_rows[self.city]
             query_for_id = f'''WITH Data AS (
-                        SELECT city, street, house_number, id, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS RowNum
+                        SELECT city, street, house_number, id, ROW_NUMBER() 
+                        OVER (ORDER BY (SELECT NULL)) AS RowNum
                         FROM addresses)
                         SELECT city, street, house_number, id, RowNum
                         FROM Data
                         WHERE city = ? AND street REGEXP ? AND house_number = ? AND
                         RowNum BETWEEN {start_row} AND {end_row}'''
             
-            coordinates = self._try_return_data_from_db(db_coordinates, query_for_id, (self.city, f".*{self._to_different_case(self.street)}.*", self.house), region)
+            coordinates = self._try_return_data_from_db(
+                db_coordinates, [query_for_id],
+                (self.city, f".*{self._to_different_case(self.street)}.*", self.house),
+                region).__next__()
             if coordinates:
                 return coordinates
                         
         self._try_find_similar_cities(cities)
 
     def _try_find_similar_cities(self, cities):
-        max_count = 1000 if len(self._similar_cities) == 0 else max(count[0] for count in self._similar_cities.keys())
+        max_count = 7 if len(self._similar_cities) == 0 else\
+            max(count[0] for count in self._similar_cities.keys())
         for city in cities.cities:
             count = LevenshteinDistance.damerau_levenshtein_distance(self.city, city)
             if count <= max_count:
@@ -63,36 +69,52 @@ class CoordinatesFinder:
 
     def try_return_similar_cities(self):
         count = 0
-        for city, region in [(city,region[1]) for region, cities in sorted(self._similar_cities.items()) for city in cities if region[0] <= 5]:
-            db_coordinates = Database(path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
+        street, house = self.street, self.house
+        for city, region in [(city, region[1])
+                             for region, cities in sorted(self._similar_cities.items())
+                             for city in cities]:
+            db_coordinates = Database(
+                path_to_databases.joinpath('databases').joinpath(f'{region}.db'))
+
             query_for_id = f'''SELECT city, street, house_number, id
                             FROM addresses
                             WHERE city = ? AND street REGEXP ? AND house_number = ?'''
-            coordinates = self._try_return_data_from_db(db_coordinates, query_for_id, (city, f".*{self._to_different_case(self.street)}.*", self.house), region)
-            if coordinates:
+            query_for_id_without_house = \
+                f'''SELECT city, street, house_number, id
+                    FROM addresses
+                    WHERE city = ? AND street REGEXP ? AND house_number REGEXP ?'''
+
+            coordinates = self._try_return_data_from_db(
+                db_coordinates,
+                [query_for_id, query_for_id_without_house],
+                (city, f".*{self._to_different_case(street)}.*", f".*{house[0]}.*"),
+                region)
+
+            local_count = 0
+            for coordinate in coordinates:
+                if local_count == 5:
+                    break
+                yield coordinate
+                local_count += 1
+            if local_count != 0:
                 count += 1
-                yield coordinates
-            else:
-                query_for_id_without_house = \
-                    f'''SELECT city, street, house_number, id
-                        FROM addresses
-                        WHERE city = ? AND street REGEXP ? AND house_number REGEXP ?'''
-                coordinates = self._try_return_data_from_db(db_coordinates, query_for_id_without_house, (city, f".*{self._to_different_case(self.street)}.*", f".*{self.house[0]}.*"), region)
-                if coordinates:
-                    count += 1
-                    yield coordinates
-            
-            if count == 5:
+
+            if count == 3:
                 break
         
-    def _try_return_data_from_db(self, db, query, parameters, region):
-        data_from_db = db.select_from_database(query, parameters)
-        if data_from_db:
-            self.region = region
-            self.city = data_from_db[0][0]
-            self.street = data_from_db[0][1]
-            self.house = data_from_db[0][2]
-            return db.select_from_database('''SELECT lat, lon FROM coordinates WHERE id=?''', (data_from_db[0][3],))[0]
+    def _try_return_data_from_db(self, db, queries, parameters, region):
+        for query in queries:
+            data_from_db = db.select_from_database(query, parameters)
+            if data_from_db:
+                for data in data_from_db:
+                    self.region = region
+                    self.city = data[0]
+                    self.street = data[1]
+                    self.house = data[2]
+                    yield db.select_from_database(
+                        '''SELECT lat, lon FROM coordinates WHERE id=?''',
+                        (data[3],))[0]
 
     def _to_different_case(self, st):
-        return " ".join(f"[{el[0].upper()}{el[0].lower()}]{el[1:3]}" for el in st.split())
+        return " ".join(f"[{el[0].upper()}{el[0].lower()}]{el[1:3]}"
+                        for el in st.split())

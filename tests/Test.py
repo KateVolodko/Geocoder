@@ -1,7 +1,12 @@
 import unittest
-from words_parser.address_parser import Address_parser
-from words_parser.algorithms import LevenshteinDistance
-from words_parser.finder import CoordinatesFinder
+import pathlib
+import sys
+
+sys.path.append(str(pathlib.Path(__file__).parent.parent.parent.absolute()))
+
+from Geocoder.words_parser.address_parser import Address_parser
+from Geocoder.words_parser.algorithms import LevenshteinDistance
+from Geocoder.words_parser.finder import CoordinatesFinder
 
 
 class Tests(unittest.TestCase):

@@ -1,4 +1,5 @@
-import sqlite3, re
+import sqlite3
+import re
 
 
 class Database:
