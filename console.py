@@ -12,8 +12,20 @@ from Geocoder.words_parser.address_parser import Address_parser
 path_to_results = pathlib.Path(__file__).parent.joinpath('result.json')
 
 @click.command()
-@click.option('--address', type=str, help='Введите адрес')
+@click.option('--address', type=str, help='Введите адрес для нахождения координат')
 def input_data(address):
+    """
+    Консольное приложение Geocoder, которое по введенному адресу определяет координаты (широту и долготу).
+
+    Параметры:
+    - адрес (str): Адрес для определения координат.
+
+    Примеры ввода адресов:
+    - г Екатеринбург улица Тургенева 4
+    - Свердловская область город Екатеринбург ул. Малышева 15
+    - ул. Малышева 15 г. Екатеринбург Свердловская область
+    - г. Екатеринбург ул. Тургенева 4 Свердловская область
+    """
     if not address:
         show_input_example()
 
